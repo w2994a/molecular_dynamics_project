@@ -1,10 +1,21 @@
-"""Simple MD simulation of triatomic molecule.
+"""Simple MD simulation of triatomic model.
 
 Usage:
 ======
 
-python triatomic_model.py
+python triatomic_model.py file [-h] [-l] [-n NB_ITER] [-g] [-s]
 
+
+positional arguments:
+  file                  File name of MD result
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -l, --launch          Launch MD
+  -n NB_ITER, --nb_iter NB_ITER
+                        Number of iteration for MD (default: 10000)
+  -g, --graph           Show graph
+  -s, --save            Save graph
 """
 
 __authors__ = ("William Amory", "Lucas Rouaud")
@@ -14,6 +25,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import os, sys
+# Module for get arguments, options and path file.
 import argparse, pathlib
 
 
@@ -52,13 +64,13 @@ def get_arg_and_option():
         arguments and options used.
     """
     parser = argparse.ArgumentParser(
-        description='MD simulation of triatomic model.')
+        description='Simple MD simulation of triatomic model.')
     parser.add_argument('file', type=pathlib.Path,
                         help="File name of MD result")
     parser.add_argument("-l", "--launch", help="Launch MD", action="store_true")
     parser.add_argument("-n", "--nb_iter", help="Number of iteration for MD (default: %(default)s)", type=int, default=10000,)
     parser.add_argument("-g", "--graph", help="Show graph", action="store_true")
-    parser.add_argument("-s", "--save", help="Save graph", action="store_true")
+    parser.add_argument("-s", "--save", help="Save graph\n", action="store_true")
     return parser.parse_args()
 
 
@@ -254,12 +266,40 @@ def print_graph(filin):
     if not os.path.exists(filin):
         sys.exit("\nError !!!!\n\nRES.dat don't exist\n\n ---\n "+
                  "lauch MD with : python3 triatomic_model.py -l\n ---\n\n")
-    data = pd.read_csv(filin)
+    data = pd.read_csv(filin, sep=" ")
+
+    # reponse = input("entrer vos options : ")
+    # plt.plot(data[reponse])
+    # plt.show()
 
     reponse = ""
     while reponse != 'q' and reponse != 'quit':
-        reponse = input("entrer vos options : ")
-        plt.plot(data[reponse])
+        reponse = input("Choose variable to plot\n\n"+
+                        "step : \n"+
+                        "t : \n"+
+                        "x_b : \n"+
+                        "x_c : \n"+
+                        "y_c : \n"+
+                        "ene_pot : potential energy\n"+
+                        "ene_kin : kinetic energy\n"+
+                        "ene_tot : total energy\n"+
+                        "v_xb : \n"+
+                        "v_xc : \n"+
+                        "v_yc : \n"+
+                        "f_xb : \n"+
+                        "f_xc : \n"+
+                        "f_yc : \n"+
+                        "T : Temperature\n"+
+                        "acc_xb : \n"+
+                        "acc_xc : \n"+
+                        "acc_yc : \n\n"
+                        +"entrer vos options : ")
+        if reponse == 'q' or reponse == 'quit':
+            break
+        reponse = reponse.split()
+        for rep in reponse:
+            plt.plot(data[rep])
+        plt.xlim(0, 1000)
         plt.show() 
 
 
