@@ -19,6 +19,10 @@ bond:
 # #               ! Peptide geometry, condensed phase (LK)
 """
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import tkinter  as tk
+
 # Define initial position value of atoms
 X_B0 = 1.23 # in A
 X_C0 = X_B0/2# in A
@@ -61,13 +65,13 @@ def calc_force(x_b, x_c, y_c):
     # Here we have an numerical derivative of Epot.
     f_xb = -( (calc_ene(x_b + DELTA_T_FORCE, x_c, y_c)
             -calc_ene(x_b - DELTA_T_FORCE, x_c, y_c))
-            /2*DELTA_T_FORCE )
+            /(2*DELTA_T_FORCE) )
     f_xc = -( (calc_ene(x_b, x_c + DELTA_T_FORCE, y_c)
             -calc_ene(x_b, x_c - DELTA_T_FORCE, y_c))
-            /2*DELTA_T_FORCE )
+            /(2*DELTA_T_FORCE) )
     f_yc = -( (calc_ene(x_b, x_c, y_c + DELTA_T_FORCE)
             -calc_ene(x_b, x_c, y_c - DELTA_T_FORCE))
-            /2*DELTA_T_FORCE )
+            /(2*DELTA_T_FORCE) )
     return f_xb, f_xc, f_yc
 
 
@@ -146,6 +150,11 @@ def do_MD(x_b, x_c, y_c):
             x_c = xc_new
             y_c = yc_new
 
+
+def movie(filout):
+    tk.Canvas(fenetre, width=150, height=120)
+    
+    
 
 ########
 # MAIN #
