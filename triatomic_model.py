@@ -14,8 +14,8 @@ optional arguments:
   -l, --launch          Launch MD
   -n NB_ITER, --nb_iter NB_ITER
                         Number of iteration for MD (default: 10000)
-  -g, --graph           Show graph
-  -s, --save            Save graph
+  -g, --generate_graph  Generate graph of MD analysis
+  -s, --show            Show graph
 """
 
 __authors__ = ("William Amory", "Lucas Rouaud")
@@ -36,8 +36,8 @@ Y_C0 = (X_B0**2 + X_C0**2)**0.5 #  in A
 
 # Define initial euclidean distance.
 # initial euclidean distance of A-B = X_B0
-l_AC0 = (X_C0**2 + Y_C0**2)**0.5
-l_BC0 = ((X_C0 - X_B0)**2 + Y_C0**2)**0.5
+L_AC0 = (X_C0**2 + Y_C0**2)**0.5
+L_BC0 = ((X_C0 - X_B0)**2 + Y_C0**2)**0.5
 
 # Define constants for energy calculation.
 K = 620.0 # in kcal/mol/A^2
@@ -69,8 +69,9 @@ def get_arg_and_option():
                         help="File name of MD result")
     parser.add_argument("-l", "--launch", help="Launch MD", action="store_true")
     parser.add_argument("-n", "--nb_iter", help="Number of iteration for MD (default: %(default)s)", type=int, default=10000,)
-    parser.add_argument("-g", "--graph", help="Show graph", action="store_true")
-    parser.add_argument("-s", "--save", help="Save graph\n", action="store_true")
+    parser.add_argument("-g", "--generate_graph", action="store_true",
+                        help="Generate graph of MD")
+    parser.add_argument("-s", "--show", help="Show graph\n", action="store_true")
     return parser.parse_args()
 
 
@@ -96,7 +97,7 @@ def calc_ene(x_b, x_c, y_c):
     l_AC = (x_c**2 + y_c**2)**0.5
     l_BC = ((x_c  - x_b)**2  + y_c**2)**0.5
     
-    ene = K *  ((x_b - X_B0)**2 + (l_AC - l_AC0)**2 + (l_BC - l_BC0)**2)
+    ene = K *  ((x_b - X_B0)**2 + (l_AC - L_AC0)**2 + (l_BC - L_BC0)**2)
     return ene
 
 
@@ -214,17 +215,17 @@ def do_MD(x_b, x_c, y_c, nsteps):
         y position of atom C.
     """
     with args.file.open("w") as f_out:
-        out = ("step t x_b x_c y_c ene_pot ene_kin ene_tot v_xb v_xc v_yc "+
+        out = ("step time x_b x_c y_c ene_pot ene_kin ene_tot v_xb v_xc v_yc "+
                "f_xb f_xc f_yc T acc_xb acc_xc acc_yc\n")
         f_out.write(out)
         for step in range(nsteps):
-            t = step * DELTA_t
+            time = step * DELTA_t
             if step == 0:
                 xb_prev, xc_prev, yc_prev = start_Verlet(x_b, x_c, y_c)
             # Calc force.
             f_xb, f_xc, f_yc = calc_force(x_b, x_c, y_c)
-            # Compute acceleration (f in kcal/mol/A, M_C in kg/mol -> use conversion
-            #                       factor to get acceleration in A/ps^2).
+            # Compute acceleration (f in kcal/mol/A, M_C in kg/mol -> use
+            # conversion factor to get acceleration in A/ps^2).
             acc_xb, acc_xc, acc_yc = calc_acc(f_xb, f_xc, f_yc)
             # Compute new pos with Verlet algorithm.
             xb_new = (2 * x_b) - xb_prev + (DELTA_t**2 * acc_xb)
@@ -247,10 +248,10 @@ def do_MD(x_b, x_c, y_c, nsteps):
             ene_pot = calc_ene(x_b, x_c, y_c)
             ene_tot = ene_pot + ene_kin
             # Monitor properties here!
-            out = (f"{step} {t:.4f} {x_b:.8f} {x_c:.8f} {y_c:.8f} {ene_pot:.8f} "+
-                   f"{ene_kin:.8f} {ene_tot:.8f} {v_xb:.8f} {v_xc:.8f} "+
-                   f"{v_yc:.8f} {f_xb:.8f} {f_xc:.8f} {f_yc:.8f} {T:.8f} "+
-                   f"{acc_xb:.8f} {acc_xc:.8f} {acc_yc:.8f}\n")
+            out = (f"{step} {time:.4f} {x_b:.8f} {x_c:.8f} {y_c:.8f} "
+                   f"{ene_pot:.8f} {ene_kin:.8f} {ene_tot:.8f} {v_xb:.8f} "+
+                   f"{v_xc:.8f} {v_yc:.8f} {f_xb:.8f} {f_xc:.8f} {f_yc:.8f} "+
+                   f"{T:.8f} {acc_xb:.8f} {acc_xc:.8f} {acc_yc:.8f}\n")
             f_out.write(out)
            	# Update new and prev pos for the next iteration.
             xb_prev = x_b
@@ -261,46 +262,170 @@ def do_MD(x_b, x_c, y_c, nsteps):
             x_c = xc_new
             y_c = yc_new
 
+def user_input_graph():
+    """Print user choices variables to plot.
 
-def print_graph(filin):
+    Returns
+    -------
+    str : answer
+        User choices of variables to plot.
+    """
+    answer = input("\nChoose variable to plot\n\n"+
+                        "Variable  Description\n"+
+                        "––––––––  –––––––––––\n"+
+                        "step :\t  Number of itération\n"+
+                        "t :\t  Time of MD in ps\n"+
+                        "x_b :\t  x position of atom B\n"+
+                        "x_c :\t  x position of atom C\n"+
+                        "y_c :\t  y position of atom C\n"+
+                        "ene_pot : Potential energy\n"+
+                        "ene_kin : Kinetic energy\n"+
+                        "ene_tot : Total energy\n"+
+                        "v_xb :\t  Velocity on atom B's x position \n"+
+                        "v_xc :\t  Velocity on atom C's x position\n"+
+                        "v_yc :\t  Velocity on atom C's y position\n"+
+                        "f_xb :\t  Force on atom B's x position\n"+
+                        "f_xc :\t  Force on atom C's x position\n"+
+                        "f_yc :\t  Force on atom C's y position\n"+
+                        "T :\t  Temperature\n"+
+                        "acc_xb :  Acceleration on atom B's x position\n"+
+                        "acc_xc :  Acceleration on atom C's x position\n"+
+                        "acc_yc :  Acceleration on atom C's y position\n\n"+
+                        "To quit enter q or quit\n\n"+
+                        "Enter the variables to represent : ")
+    return answer
+
+
+def user_graph(filin):
+    """User generate graph function of MD résults.
+
+    Parameters
+    ----------
+    filin : str
+        file name.
+    """
+    # Exit and print error message if filin don't exist.
     if not os.path.exists(filin):
-        sys.exit("\nError !!!!\n\nRES.dat don't exist\n\n ---\n "+
-                 "lauch MD with : python3 triatomic_model.py -l\n ---\n\n")
+        sys.exit(f"\nError !!!!\n\n{filin} don't exist\n\n ---\n "+
+                 "Launch MD with : python3 triatomic_model.py -l\n"+
+                 "Or\n View help with : python3 triatomic_model.py -h\n"+
+                 "---\n\n")
     data = pd.read_csv(filin, sep=" ")
-
-    # reponse = input("entrer vos options : ")
-    # plt.plot(data[reponse])
-    # plt.show()
-
-    reponse = ""
-    while reponse != 'q' and reponse != 'quit':
-        reponse = input("Choose variable to plot\n\n"+
-                        "step : \n"+
-                        "t : \n"+
-                        "x_b : \n"+
-                        "x_c : \n"+
-                        "y_c : \n"+
-                        "ene_pot : potential energy\n"+
-                        "ene_kin : kinetic energy\n"+
-                        "ene_tot : total energy\n"+
-                        "v_xb : \n"+
-                        "v_xc : \n"+
-                        "v_yc : \n"+
-                        "f_xb : \n"+
-                        "f_xc : \n"+
-                        "f_yc : \n"+
-                        "T : Temperature\n"+
-                        "acc_xb : \n"+
-                        "acc_xc : \n"+
-                        "acc_yc : \n\n"
-                        +"entrer vos options : ")
-        if reponse == 'q' or reponse == 'quit':
+    answer = user_input_graph()
+    while answer.lower() != 'q' and answer.lower() != 'quit':
+        answer = answer.split()
+        sns.set_style("whitegrid")
+        plt.figure()
+        for rep in answer:
+            plt.plot(data["time"], data[rep])
+        #plt.xlim(1000, 2000)
+        plt.xlabel("Time in ps")
+        plt.show()
+        answer2 = input("new graph ? (y/n) : ")
+        if answer2 == "n":
             break
-        reponse = reponse.split()
-        for rep in reponse:
-            plt.plot(data[rep])
-        plt.xlim(0, 1000)
-        plt.show() 
+        else:
+            answer = input("Enter the variables to represent : ")
+        
+
+def generate_graph(filin):
+    """User generate graph function of MD résults.
+
+    Parameters
+    ----------
+    filin : str
+        file name.
+    """
+    # Exit and print error message if filin don't exist.
+    if not os.path.exists(filin):
+        sys.exit(f"\nError !!!!\n\n{filin} don't exist\n\n ---\n "+
+                 "Launch MD with : python3 triatomic_model.py -l\n"+
+                 "Or\n View help with : python3 triatomic_model.py -h\n"+
+                 "---\n\n")
+    data = pd.read_csv(filin, sep=" ")
+    sns.set_style("whitegrid")
+    
+    # Plot energy of molecule.
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["ene_tot"])
+    plt.plot(data["time"], data["ene_pot"])
+    plt.plot(data["time"], data["ene_kin"])
+    plt.legend(["Total energy", "Potential energy", "Kinetic energy"])
+    plt.title("Energy of the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("Energy (in kcal/mol)")
+    plt.xlim(0, 0.5)
+    plt.savefig("energy.png")
+    
+    # Plot temperature of molecule.
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["T"])
+    plt.title("Temperature of the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("Temperature (in K)")
+    plt.xlim(0, 0.5)
+    plt.savefig("temperature.png")
+    
+    # Plot force applied of atoms.
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["f_xb"])
+    plt.plot(data["time"], data["f_xc"])
+    plt.plot(data["time"], data["f_yc"])
+    plt.title("Force applied to atoms of the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("Force (in kcal/mol/A)")
+    plt.legend(["Force applied on atom B's x position",
+                "Force applied on atom C's x position",
+                "Force applied on atom C's y position"])
+    plt.xlim(0, 0.5)
+    plt.savefig("force.png")
+    
+    # Plot acceleration of atoms.
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["acc_xb"])
+    plt.plot(data["time"], data["acc_xc"])
+    plt.plot(data["time"], data["acc_yc"])
+    plt.title("acceleration applied to atoms of the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("acceleration (in A/ps^2)")
+    plt.legend(["acceleration applied on atom B's x position",
+                "acceleration applied on atom C's x position",
+                "acceleration applied on atom C's y position"])
+    plt.xlim(0, 0.5)
+    plt.savefig("acceleration.png")
+    
+    # Plot Velocity of atoms.
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["v_xb"])
+    plt.plot(data["time"], data["v_xc"])
+    plt.plot(data["time"], data["v_yc"])
+    plt.title("Vitesse applied to atoms of the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("Velocity (in m/s)")
+    plt.legend(["Velocity applied on atom B's x position",
+                "Velocity applied on atom C's x position",
+                "Velocity applied on atom C's y position"])
+    plt.xlim(0, 0.5)
+    plt.savefig("Velocity.png")
+    
+    # Plot position of atoms.
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["x_b"])
+    plt.plot(data["time"], data["x_c"])
+    plt.plot(data["time"], data["y_c"])
+    plt.title("x position of atom B of atoms of the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("Position")
+    plt.legend(["x position of atom B", "x position of atom C",
+                "y position of atom C"])
+    plt.xlim(0, 0.5)
+    plt.savefig("Position.png")
 
 
 ########
@@ -312,9 +437,10 @@ if __name__ == "__main__":
     args = get_arg_and_option()
     
     # Quit script and print message if no options are specified.
-    if args.launch == False and args.graph == False and args.save == False:
-        sys.exit(("\nError !!!!\n\nno option specified (used one or more of "+
-                  "the following options: -l -g -s)\n\n ---\n view option "+
+    if (args.launch == False and args.generate_graph == False and
+        args.show == False):
+        sys.exit(("\nError !!!!\n\nNo option specified (used one or more of "+
+                  "the following options: -l -g -s)\n\n ---\n View option "+
                   "with : python3 triatomic_model.py -h\n ---\n\n"))
     
     # Lauch MD if launch option is specified.
@@ -323,7 +449,7 @@ if __name__ == "__main__":
         # xa = 0.0 ==> centered at origin (static point).
         # xb is x coor of B (moves along x axis = mobile point).
         # xc is x coor of C (moves along x axis = mobile point).
-        # yc is x coor of C (moves along y axis = mobile point).
+        # yc is y coor of C (moves along y axis = mobile point).
         #     ==> at starting position, the spring is at rest.
         x_b = X_B0
         x_c = X_C0
@@ -331,6 +457,10 @@ if __name__ == "__main__":
         # Launch MD!
         do_MD(x_b, x_c, y_c, args.nb_iter)
 
-    if args.graph == True or args.save == True:
-        print_graph(args.file)
+    if args.show == True:
+        user_graph(args.file)
     
+    if args.generate_graph == True:
+        generate_graph(args.file)
+    
+    print("\n\nThank's see you soon ;)\n\u00A9 William Amory, Lucas Rouaud\n\n")
