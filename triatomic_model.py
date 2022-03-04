@@ -1,27 +1,21 @@
-#! /usr/bin/env python3
+"""Simple MD simulation of triatomic molecule.
 
-""" Simple MD simulation of an harmonic oscillator.
+Usage:
+======
 
-Last change : P. Fuchs Feb 10 2020
-The bond parameters were taken from CHARMM(par_all36_prot.prm) for a C=O double
-bond:
-# @ http://mackerell.umaryland.edu/charmm_ff.shtml#charmm
-# MASS    76 O     15.99900 ! carbonyl oxygen
-# MASS    46 C     12.01100 ! carbonyl C, peptide backbone
-# [...]
-# BONDS
-# !
-# !V(bond) = Kb(b - b0)**2
-# !
-# !Kb: kcal/mole/A**2
-# !b0: A
-# O    C     620.000     1.2300 ! ALLOW   PEP POL ARO
-# #               ! Peptide geometry, condensed phase (LK)
+python triatomic_model.py
+
 """
+
+__authors__ = ("William Amory", "Lucas Rouaud")
+__date__ = "2022-04-03"
 
 import matplotlib.pyplot as plt
 import seaborn as sns
-import tkinter  as tk
+import pandas as pd
+import os, sys
+import argparse, pathlib
+
 
 # Define initial position value of atoms
 X_B0 = 1.23 # in A
@@ -46,13 +40,47 @@ N_DOF = 3 # nb of deg of freedom (only 1 -> x)
 DELTA_T_FORCE = 0.0001 # 
 DELTA_t = 0.0005 # time step in ps
 INIT_T = 300 # T in K
-NSTEPS = 10000
 ######## No Change below!!!###########
 
 
+def get_arg_and_option():
+    """Get arguments and options.
+
+    Returns
+    -------
+    class 'argparse.Namespace' : args
+        arguments and options used.
+    """
+    parser = argparse.ArgumentParser(
+        description='MD simulation of triatomic model.')
+    parser.add_argument('file', type=pathlib.Path,
+                        help="File name of MD result")
+    parser.add_argument("-l", "--launch", help="Launch MD", action="store_true")
+    parser.add_argument("-n", "--nb_iter", help="Number of iteration for MD (default: %(default)s)", type=int, default=10000,)
+    parser.add_argument("-g", "--graph", help="Show graph", action="store_true")
+    parser.add_argument("-s", "--save", help="Save graph", action="store_true")
+    return parser.parse_args()
+
+
 def calc_ene(x_b, x_c, y_c):
+    """Calculate potential enregy.
+
+    Parameters
+    ----------
+    x_b : float
+        x position of atom B.
+    x_c : float
+        x position of atom C.
+    y_c : float
+        y position of atom C.
+
+    Returns
+    -------
+    float : ene
+        potential energy of model.
+    """
     # Define current euclidean distance.
-    # current euclidean distance of A-B = x_b
+    # Current euclidean distance of A-B = x_b
     l_AC = (x_c**2 + y_c**2)**0.5
     l_BC = ((x_c  - x_b)**2  + y_c**2)**0.5
     
@@ -61,6 +89,26 @@ def calc_ene(x_b, x_c, y_c):
 
 
 def calc_force(x_b, x_c, y_c):
+    """Calculate force.
+
+    Parameters
+    ----------
+    x_b : float
+        x position of atom B.
+    x_c : float
+        x position of atom C.
+    y_c : float
+        y position of atom C.
+
+    Returns
+    -------
+    float : f_xb
+        Force applied on atom B's x position.
+    float : f_xc
+        Force applied on atom C's x position.
+    float : f_yc
+        Force applied on atom C's y position.
+    """
     # Force is the derivative of Epot, unit of force is kcal/mol/A.
     # Here we have an numerical derivative of Epot.
     f_xb = -( (calc_ene(x_b + DELTA_T_FORCE, x_c, y_c)
@@ -76,6 +124,26 @@ def calc_force(x_b, x_c, y_c):
 
 
 def calc_acc(f_xb, f_xc, f_yc):
+    """Calculate acceleration.
+
+    Parameters
+    ----------
+    f_xb : float
+        Force applied on atom B's x position.
+    f_xc : float
+        Force applied on atom c's x position.
+    f_yc : float
+        Force applied on atom C's y position.
+
+    Returns
+    -------
+    float : acc_xb
+        Acceleration applied on atom B's x position.
+    float : acc_xc
+        Acceleration applied on atom c's x position.
+    float : acc_yc
+        Acceleration applied on atom C's y position.
+    """
     acc_xb = (f_xb / M_C) * 0.418
     acc_xc = (f_xc / M_C) * 0.418
     acc_yc = (f_yc / M_C) * 0.418
@@ -83,6 +151,26 @@ def calc_acc(f_xb, f_xc, f_yc):
 
 
 def start_Verlet(x_b, x_c, y_c):
+    """Start MD with Verlet algorithm.
+
+    Parameters
+    ----------
+    x_b : float
+        x position of atom B.
+    x_c : float
+        x position of atom C.
+    y_c : float
+        y position of atom C.
+
+    Returns
+    -------
+    float : xb_prev
+        Previous x position of atom B.
+    float : xc_prev
+        Previous x position of atom C.
+    float : yc_prev
+        Previous y position of atom C.
+    """
     # Choose a velocity (for our C atom) which corresponds to T=300K.
     # v calculated from: v^2 = kT/m.
     # Factor 0.418 to convert m/s to A/ps.
@@ -101,12 +189,23 @@ def start_Verlet(x_b, x_c, y_c):
     return xb_prev, xc_prev, yc_prev
 
 
-def do_MD(x_b, x_c, y_c):
-    with open("RES.dat", "w") as f_out:
+def do_MD(x_b, x_c, y_c, nsteps):
+    """Launch MD of triatomic model.
+
+    Parameters
+    ----------
+    x_b : float
+        x position of atom B.
+    x_c : float
+        x position of atom C.
+    y_c : float
+        y position of atom C.
+    """
+    with args.file.open("w") as f_out:
         out = ("step t x_b x_c y_c ene_pot ene_kin ene_tot v_xb v_xc v_yc "+
                "f_xb f_xc f_yc T acc_xb acc_xc acc_yc\n")
         f_out.write(out)
-        for step in range(NSTEPS):
+        for step in range(nsteps):
             t = step * DELTA_t
             if step == 0:
                 xb_prev, xc_prev, yc_prev = start_Verlet(x_b, x_c, y_c)
@@ -151,23 +250,47 @@ def do_MD(x_b, x_c, y_c):
             y_c = yc_new
 
 
-def movie(filout):
-    tk.Canvas(fenetre, width=150, height=120)
-    
-    
+def print_graph(filin):
+    if not os.path.exists(filin):
+        sys.exit("\nError !!!!\n\nRES.dat don't exist\n\n ---\n "+
+                 "lauch MD with : python3 triatomic_model.py -l\n ---\n\n")
+    data = pd.read_csv(filin)
+
+    reponse = ""
+    while reponse != 'q' and reponse != 'quit':
+        reponse = input("entrer vos options : ")
+        plt.plot(data[reponse])
+        plt.show() 
+
 
 ########
 # MAIN #
 ########
 if __name__ == "__main__":
-    # Define starting coordinates.
-    # xa = 0.0 ==> centered at origin (static point).
-    # xb is x coor of B (moves along x axis = mobile point).
-    # xc is x coor of C (moves along x axis = mobile point).
-    # yc is x coor of C (moves along y axis = mobile point).
-    #     ==> at starting position, the spring is at rest.
-    x_b = X_B0
-    x_c = X_C0
-    y_c = Y_C0
-    # Launch MD!
-    do_MD(x_b, x_c, y_c)
+    
+    # Get file name and option.
+    args = get_arg_and_option()
+    
+    # Quit script and print message if no options are specified.
+    if args.launch == False and args.graph == False and args.save == False:
+        sys.exit(("\nError !!!!\n\nno option specified (used one or more of "+
+                  "the following options: -l -g -s)\n\n ---\n view option "+
+                  "with : python3 triatomic_model.py -h\n ---\n\n"))
+    
+    # Lauch MD if launch option is specified.
+    if args.launch == True:
+        # Define starting coordinates.
+        # xa = 0.0 ==> centered at origin (static point).
+        # xb is x coor of B (moves along x axis = mobile point).
+        # xc is x coor of C (moves along x axis = mobile point).
+        # yc is x coor of C (moves along y axis = mobile point).
+        #     ==> at starting position, the spring is at rest.
+        x_b = X_B0
+        x_c = X_C0
+        y_c = Y_C0
+        # Launch MD!
+        do_MD(x_b, x_c, y_c, args.nb_iter)
+
+    if args.graph == True or args.save == True:
+        print_graph(args.file)
+    
