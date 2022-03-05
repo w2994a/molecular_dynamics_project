@@ -25,6 +25,25 @@ optional arguments:
   -s, --show            Show graph (not functional with binder)
 ```
 
+- L'argument positionel `file` est obligatoire : il s'agit soit du nom de sortie des résultats de la dynamique moléculaire (MD), soit des résultats de la MD à analyser.  
+
+- Il est obligatoire d'utiliser au minimum une option parmis `-l`, `-g` et `-s`.  
+
+- Les options du programme sont:
+  - `-h`: affiche l'aide du programme.
+  - `-l`: Lance une MD et stocke les résultats dans le fichier spécifié par l'argument positionel. Si le fichier n'éxiste pas, celui-ci est créé. (&#9888; Si le ficher existe celui-ci est écrassé).
+  - `-n`: Permet de spécifier le nombre d'itération de la MD (par défaut elle est de 10000, ce qui représente 5 ps de dynamique).
+  - `-g`: Permet le génération et la sauvegarde des graphiques suivants (&#9888; les graphiques générés sont réalisés pour 1000 itérations de MD):
+    - les energies potentielles, cinétiques et totales en fonction du temps de la MD (`energy.png`).
+    - LA température (en Kelvin) en fonction du temps de la MD (`temperature.png`).
+    - les forces appliquées sur les atomes en fonctions du temps de la MD (`force.png`).
+    - Les accélérations appliquées sur les atomes en fonctions du temps de la MD (`acceleration.png`).
+    - La vélocité appliquée sur les atomes en fonctions du temps de la MD (`velocity.png`).
+    - Les positions des atomes en fonctions du temps de la MD, ainsi que les positions du barycentre de la molécule (`position.png`). cad. la position x de l'atome B et la position x,y de l'atom C [la postion y de l'atome B = 0 et les positions x,y de l'atome A = (0, 0)].
+    - L'aire de la molécule en fonction du temps de la MD (`area.png`).
+  - `-s`: Permet à l'utilisateur de générer les graphiques des variables qu'il souhaite.
+  - `-m` : Sera l'option permettant de visualiser la dynamique moléculaire, une fois celle-ci implémentée.
+
 ---
 ## Installation sur votre pc local
 1. Assurrez-vous d'avoir une installation miniconda ou anaconda (à l'aide de la commande : `conda --version`) et le logiciel de gestion de version Git. Si ce n'est pas le cas procéder à une installation de `conda` ([Miniconda](https://docs.conda.io/en/latest/miniconda.html) • [Anaconda](https://www.anaconda.com/products/individual)) et/ou de `Git` ([Git](https://git-scm.com/downloads)) 

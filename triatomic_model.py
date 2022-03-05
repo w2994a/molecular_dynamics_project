@@ -448,11 +448,14 @@ def generate_graph(filin):
     plt.plot(data["time"], data["x_b"])
     plt.plot(data["time"], data["x_c"])
     plt.plot(data["time"], data["y_c"])
-    plt.title("x position of atom B of atoms of the molecule")
+    plt.plot(data["time"], data["g_x"])
+    plt.plot(data["time"], data["g_y"])
+    plt.title("Position of atom B, C and barycenter of the molecule")
     plt.xlabel("Time of MD (in ps)")
     plt.ylabel("Position")
     plt.legend(["x position of atom B", "x position of atom C",
-                "y position of atom C"])
+                "y position of atom C", "x position of barycenter",
+                "y position of barycenter"])
     plt.xlim(0, 0.5)
     plt.savefig("position.png")
     
