@@ -202,6 +202,29 @@ def start_Verlet(x_b, x_c, y_c):
     return xb_prev, xc_prev, yc_prev
 
 
+def calculate_area(x_b, y_c):
+    """_summary_
+
+    Parameters
+    ----------
+    x_b : float
+        Length side of the triangle.
+    y_c : float
+        Length of the triangle height.
+
+    Returns
+    -------
+    float
+        Area of the triangle
+    """
+    return ((x_b * y_c) / 2)
+
+
+def calculate_barycenter(x_b, x_c, y_c):
+    g_x = (x_b + x_c) / 3
+    g_y = (y_c) / 3
+    return g_x, g_y
+
 def do_MD(x_b, x_c, y_c, nsteps):
     """Launch MD of triatomic model.
 
@@ -216,13 +239,13 @@ def do_MD(x_b, x_c, y_c, nsteps):
     """
     with args.file.open("w") as f_out:
         out = ("step time x_b x_c y_c ene_pot ene_kin ene_tot v_xb v_xc v_yc "+
-               "f_xb f_xc f_yc T acc_xb acc_xc acc_yc\n")
+               "f_xb f_xc f_yc T acc_xb acc_xc acc_yc area g_x g_y\n")
         f_out.write(out)
         for step in range(nsteps):
             time = step * DELTA_t
             if step == 0:
                 xb_prev, xc_prev, yc_prev = start_Verlet(x_b, x_c, y_c)
-            # Calc force.
+            # Calculate force.
             f_xb, f_xc, f_yc = calc_force(x_b, x_c, y_c)
             # Compute acceleration (f in kcal/mol/A, M_C in kg/mol -> use
             # conversion factor to get acceleration in A/ps^2).
@@ -235,23 +258,29 @@ def do_MD(x_b, x_c, y_c, nsteps):
             v_xb = (xb_new - xb_prev) / (2 * DELTA_t)
             v_xc = (xc_new - xc_prev) / (2 * DELTA_t)
             v_yc = (yc_new - yc_prev) / (2 * DELTA_t)
-            # Calc Ekin.
-            # M in kg/mol, v in m/s (1 A/ps = 100 m/s) ===> Ekin is in J/mol
+            # Calculate Ekin.
+            # M in kg/mol, v in m/s (1 A/ps = 100 m/s) ===> Ekin is in J/mol.
             ene_kin = ( (.5 * M_C * (v_xb*100.0)**2) +
                        (.5 * M_C * (v_xc*100.0)**2) +
                        (.5 * M_C * (v_yc*100.0)**2) )
             # Convert Ekin to kcal/mol.
             ene_kin /= (1000.0 * 4.18)
-            # calc Temperature (Ekin in kcal/mol, BOLTZMANN_CST in kcal/mol/K)
+            # calculate Temperature (Ekin in kcal/mol, BOLTZMANN_CST
+            # in kcal/mol/K).
             T = (2 * ene_kin) / (N_DOF * BOLTZMANN_CST)
-            # Calc Epot & Etot.
+            # Calculate Epot & Etot.
             ene_pot = calc_ene(x_b, x_c, y_c)
             ene_tot = ene_pot + ene_kin
-            # Monitor properties here!
+            # Calculate area of molecule in A^2.
+            area = calculate_area(x_b, y_c)
+            # Calculate barycenter
+            g_x, g_y = calculate_barycenter(x_b, x_c, y_c)
+            # Monitor properties here !
             out = (f"{step} {time:.4f} {x_b:.8f} {x_c:.8f} {y_c:.8f} "
                    f"{ene_pot:.8f} {ene_kin:.8f} {ene_tot:.8f} {v_xb:.8f} "+
                    f"{v_xc:.8f} {v_yc:.8f} {f_xb:.8f} {f_xc:.8f} {f_yc:.8f} "+
-                   f"{T:.8f} {acc_xb:.8f} {acc_xc:.8f} {acc_yc:.8f}\n")
+                   f"{T:.8f} {acc_xb:.8f} {acc_xc:.8f} {acc_yc:.8f} "+
+                   f"{area:.8f} {g_x:.8f} {g_y:.8f}\n")
             f_out.write(out)
            	# Update new and prev pos for the next iteration.
             xb_prev = x_b
@@ -391,10 +420,10 @@ def generate_graph(filin):
     plt.plot(data["time"], data["acc_yc"])
     plt.title("acceleration applied to atoms of the molecule")
     plt.xlabel("Time of MD (in ps)")
-    plt.ylabel("acceleration (in A/ps^2)")
-    plt.legend(["acceleration applied on atom B's x position",
-                "acceleration applied on atom C's x position",
-                "acceleration applied on atom C's y position"])
+    plt.ylabel("Acceleration (in A/ps^2)")
+    plt.legend(["Acceleration applied on atom B's x position",
+                "Acceleration applied on atom C's x position",
+                "Acceleration applied on atom C's y position"])
     plt.xlim(0, 0.5)
     plt.savefig("acceleration.png")
     
@@ -411,7 +440,7 @@ def generate_graph(filin):
                 "Velocity applied on atom C's x position",
                 "Velocity applied on atom C's y position"])
     plt.xlim(0, 0.5)
-    plt.savefig("Velocity.png")
+    plt.savefig("velocity.png")
     
     # Plot position of atoms.
     plt.figure(figsize=(20, 10))
@@ -425,7 +454,17 @@ def generate_graph(filin):
     plt.legend(["x position of atom B", "x position of atom C",
                 "y position of atom C"])
     plt.xlim(0, 0.5)
-    plt.savefig("Position.png")
+    plt.savefig("position.png")
+    
+    # Plot area of molecule
+    plt.figure(figsize=(20, 10))
+    plt.rc("font", size=15)
+    plt.plot(data["time"], data["area"])
+    plt.title("Area the molecule")
+    plt.xlabel("Time of MD (in ps)")
+    plt.ylabel("Area (in A^2)")
+    plt.xlim(0, 0.5)
+    plt.savefig("area.png")
 
 
 ########
@@ -445,6 +484,7 @@ if __name__ == "__main__":
     
     # Lauch MD if launch option is specified.
     if args.launch == True:
+        print("MD progress...")
         # Define starting coordinates.
         # xa = 0.0 ==> centered at origin (static point).
         # xb is x coor of B (moves along x axis = mobile point).
@@ -456,11 +496,17 @@ if __name__ == "__main__":
         y_c = Y_C0
         # Launch MD!
         do_MD(x_b, x_c, y_c, args.nb_iter)
+        print("MD completed")
 
     if args.show == True:
+        print("MD user generate graph progress...")
         user_graph(args.file)
+        print("MD user generate graph completed")
     
     if args.generate_graph == True:
+        print("MD generate graph progress...")
         generate_graph(args.file)
+        print("MD generate graph completed")
     
-    print("\n\nThank's see you soon ;)\n\u00A9 William Amory, Lucas Rouaud\n\n")
+    print("\n\nThank's see you soon ;)\n\u00A9 William Amory, "+
+          "Lucas Rouaud - 2022\n\n")
