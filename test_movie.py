@@ -16,6 +16,10 @@ y_c = np.array(data["y_c"])*FACTOR_DIST
 # Barycenter
 g_x = np.array(data["g_x"])*FACTOR_DIST
 g_y = np.array(data["g_y"])*FACTOR_DIST
+# Forces
+f_xb = np.array(data["f_xb"])*(-1)
+f_xc = np.array(data["f_xc"])*(-1)
+f_yc = np.array(data["f_yc"])*(-1)
 
 # Augmentation du delta de la différences entre la position
 # d'origine et la position actuelle.
@@ -38,25 +42,42 @@ cnv = Canvas(root, width=500, height=500)
 cnv.pack()
 
 # Initialisation des objets
-dist_ab = cnv.create_line(75, 75, 100, 75, fill='green')
-dist_ac = cnv.create_line(75, 75, 100, 100, fill='green')
-dist_bc = cnv.create_line(300, 75, 200, 350, fill='green')
+dist_ab = cnv.create_line(75, 75, 75+x_b[0], 75, fill='green')
+dist_ac = cnv.create_line(75, 75, 75+x_c[0], 75+y_c[0], fill='green')
+dist_bc = cnv.create_line(75+x_b[0], 75, 75+x_c[0], 75+y_c[0], fill='green')
 atom_a = cnv.create_oval(50, 50, 100, 100, fill='blue')
-atom_b = cnv.create_oval(50, 50, 100, 100, fill='blue')
-atom_c = cnv.create_oval(50, 50, 100, 100, fill="blue")
-barycenter = cnv.create_oval(50, 50, 100, 100, fill="red")
+atom_b = cnv.create_oval(50+x_b[0], 50, 100+x_b[0], 100, fill='blue')
+atom_c = cnv.create_oval(50+x_c[0], 50+y_c[0], 100+x_c[0],
+                         100+y_c[0], fill="blue")
+barycenter = cnv.create_oval(70+g_x[0], 70+g_y[0], 80+g_x[0],
+                             80+g_y[0], fill="orange")
+force_b = cnv.create_line(100, 75, 100, 75, fill=("red"), arrow="last")
+force_c = cnv.create_line(200, 300, 200, 300, fill=("red"), arrow="last")
 
-def move(x_b, x_c, y_c, g_x, g_y):
-    cnv.coords(dist_ab, 75, 75, 100+x_b, 75)
-    cnv.coords(dist_ac, 75, 75, 75+x_c, 100+y_c)
-    cnv.coords(dist_bc, 75+x_b, 75, 75+x_c, 100+y_c)
+# Legend.
+cnv.create_line(0, 450, 500, 450, fill="black")
+cnv.create_oval(50, 460, 60, 470, fill="orange")
+cnv.create_text(100 ,465 ,text = "Barycenter", fill="black")
+cnv.create_line(50, 482, 60, 482, fill=("red"), arrow="last")
+cnv.create_text(88 ,482 ,text = "Forces", fill="black")
+
+
+def move(x_b, x_c, y_c, g_x, g_y, f_xb, f_xc, f_yc):
+    cnv.coords(dist_ab, 75, 75, 75+x_b, 75)
+    cnv.coords(dist_ac, 75, 75, 75+x_c, 75+y_c)
+    cnv.coords(dist_bc, 75+x_b, 75, 75+x_c, 75+y_c)
     
     cnv.coords(atom_b, 50+x_b, 50, 100+x_b, 100)
     cnv.coords(atom_c, 50+x_c, 50+y_c, 100+x_c, 100+y_c)
     cnv.coords(barycenter, 70+g_x, 70+g_y, 80+g_x, 80+g_y)
+    
+    cnv.coords(force_b, 75+x_b, 75, 300+f_xb, 75)
+    cnv.coords(force_c, 75+x_c, 75+y_c, 200+f_xc, 300+f_yc)
 
+# Mise à jour de la position des objets.
 for i in range(len(x_b)):
     root.after(50*i, move, xb_modif[i], xc_modif[i],
-               yc_modif[i], gx_modif[i], gy_modif[i])
+               yc_modif[i], gx_modif[i], gy_modif[i],
+               f_xb[i], f_xc[i], f_yc[i])
 
 root.mainloop()
