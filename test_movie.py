@@ -4,7 +4,7 @@ import pandas as pd
 
 
 FACTOR_DIST = 200
-DELTA_POS = 10
+delta_pos = 10
 
 # import dat of MD
 data = pd.read_csv("RES.dat", sep=" ")
@@ -24,16 +24,16 @@ f_yc = np.array(data["f_yc"])*(-1)
 # Augmentation du delta de la différences entre la position
 # d'origine et la position actuelle.
 diff_xb = np.array([x_b[0] - x_b[i] for i in range(len(x_b))])
-xb_modif = (x_b - diff_xb) + (diff_xb * DELTA_POS)
+xb_modif = (x_b - diff_xb) + (diff_xb * delta_pos)
 diff_xc = np.array([x_c[0] - x_c[i] for i in range(len(x_c))])
-xc_modif = (x_c - diff_xc) + (diff_xc * DELTA_POS)
+xc_modif = (x_c - diff_xc) + (diff_xc * delta_pos)
 diff_yc = np.array([y_c[0] - y_c[i] for i in range(len(y_c))])
-yc_modif = (y_c - diff_yc) + (diff_yc * DELTA_POS)
+yc_modif = (y_c - diff_yc) + (diff_yc * delta_pos)
 # Barycenter
 diff_gx = np.array([g_x[0] - g_x[i] for i in range(len(g_x))])
-gx_modif = (g_x - diff_gx) + (diff_gx * DELTA_POS)
+gx_modif = (g_x - diff_gx) + (diff_gx * delta_pos)
 diff_gy = np.array([g_y[0] - g_y[i] for i in range(len(g_y))])
-gy_modif = (g_y - diff_gy) + (diff_gy * DELTA_POS)
+gy_modif = (g_y - diff_gy) + (diff_gy * delta_pos)
 
 # création de l'objet tkinter
 root = Tk()
