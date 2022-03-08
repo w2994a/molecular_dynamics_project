@@ -10,29 +10,32 @@ Vous pouvez lancer le programme de dynamique moléculaire d'une molécule triato
 ## Utilisation
 
 ```
-python triatomic_model.py file [-h] [-l] [-n NB_ITER] [-g] [-s]
-
+triatomic_model.py file [-h] [-l] [-N NB_ITER] [-T TEMPERATURE] [-g] [-s] [-m]
 
 positional arguments:
   file                  File name of MD result
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -l, --launch          Launch MD
-  -n NB_ITER, --nb_iter NB_ITER
+  -N NB_ITER, --nb_iter NB_ITER
                         Number of iteration for MD (default: 10000)
-  -g, --generate_graph  Generate graph of MD analysis
+  -T TEMPERATURE, --temperature TEMPERATURE
+                        Temperature of model in Kelvin (default: 300)
+  -g, --generate_graph  Generate graph of MD
   -s, --show            Show graph (not functional with binder)
+  -m, --movie           View movie of MD
 ```
 
 - L'argument positionel `file` est obligatoire : il s'agit soit du nom de sortie des résultats de la dynamique moléculaire (MD), soit des résultats de la MD à analyser.  
 
-- Il est obligatoire d'utiliser au minimum une option parmis `-l`, `-g` et `-s`.  
+- Il est obligatoire d'utiliser au minimum une option parmis `-l`, `-g`, `-s` ou `-m`.  
 
 - Les options du programme sont:
   - `-h`: affiche l'aide du programme.
   - `-l`: Lance une MD et stocke les résultats dans le fichier spécifié par l'argument positionel. Si le fichier n'éxiste pas, celui-ci est créé. (&#9888; Si le ficher existe celui-ci est écrassé).
-  - `-n`: Permet de spécifier le nombre d'itération de la MD (par défaut elle est de 10000, ce qui représente 5 ps de dynamique).
+  - `-N`: Permet de spécifier le nombre d'itération de la MD (par défaut elle est de 10000, ce qui représente 5 ps de dynamique).
+  - `-T`: Permet de spécifier la température du système en Kelvin (par défaut elle est de 300 Kelvin).  
   - `-g`: Permet le génération et la sauvegarde des graphiques suivants (&#9888; les graphiques générés sont réalisés pour 1000 itérations de MD):
     - les energies potentielles, cinétiques et totales en fonction du temps de la MD (`energy.png`).
     - LA température (en Kelvin) en fonction du temps de la MD (`temperature.png`).
@@ -42,7 +45,7 @@ optional arguments:
     - Les positions des atomes en fonctions du temps de la MD, ainsi que les positions du barycentre de la molécule (`position.png`). cad. la position x de l'atome B et la position x,y de l'atom C [la postion y de l'atome B = 0 et les positions x,y de l'atome A = (0, 0)].
     - L'aire de la molécule en fonction du temps de la MD (`area.png`).
   - `-s`: Permet à l'utilisateur de générer les graphiques des variables qu'il souhaite.
-  - `-m` : Sera l'option permettant de visualiser la dynamique moléculaire, une fois celle-ci implémentée.
+  - `-m` : Permet de visualiser la dynamique moléculaire du système triatomique.
 
 ---
 ## Installation sur votre pc local
