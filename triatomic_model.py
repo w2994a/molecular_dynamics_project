@@ -369,7 +369,7 @@ def user_input_graph():
                    "acc_yc :  Acceleration on atom C's y position\n" +
                    "area :\t  Molecule area\n" +
                    "g_x :\t  x position of molecule barycenter\n" +
-                   "g_y :\t  y position of molecule barycenter\n\n" 
+                   "g_y :\t  y position of molecule barycenter\n\n" +
                    "To quit enter q or quit\n\n" +
                    "Enter the variables to represent : ")
     return answer
