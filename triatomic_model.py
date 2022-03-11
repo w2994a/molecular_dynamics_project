@@ -3,7 +3,7 @@
 Usage:
 ======
 
-triatomic_model.py file [-h] [-l] [-N NB_ITER] [-T TEMPERATURE] [-g] [-s] [-m]
+python triatomic_model.py file [-h] [-l] [-N NB_ITER] [-T TEMPERATURE] [-g] [-s] [-m]
 
 positional arguments:
   file                  File name of MD result
@@ -21,8 +21,9 @@ options:
 """
 
 __authors__ = ("William Amory", "Lucas Rouaud")
-__date__ = "2022-04-03"
+__date__ = "2022-03-13"
 
+# Module for system interaction.
 import os
 import sys
 # Module for get arguments, options and path file.
@@ -209,8 +210,8 @@ def start_verlet(x_b, x_c, y_c, temp):
     float : yc_prev
         Previous y position of atom C.
     """
-    # Choose a velocity (for our C atom) which corresponds to T=300K.
-    # v calculated from: v^2 = kT/m.
+    # Choose a velocity (for our C atom) which corresponds to `temp` in K.
+    # velocity calculated from: velocity^2 = kT/m.
     # Factor 0.418 to convert m/s to A/ps.
     velocity_2 = ((temp * BOLTZMANN_CST) / M_C) * 0.418
     velocity = velocity_2 ** .5

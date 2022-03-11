@@ -10,7 +10,7 @@ Vous pouvez lancer le programme de dynamique moléculaire d'une molécule triato
 ## Utilisation
 
 ```
-triatomic_model.py file [-h] [-l] [-N NB_ITER] [-T TEMPERATURE] [-g] [-s] [-m]
+python triatomic_model.py file [-h] [-l] [-N NB_ITER] [-T TEMPERATURE] [-g] [-s] [-m]
 
 positional arguments:
   file                  File name of MD result
@@ -33,7 +33,7 @@ options:
 
 - Les options du programme sont:
   - `-h`: affiche l'aide du programme.
-  - `-l`: Lance une MD et stocke les résultats dans le fichier spécifié par l'argument positionel. Si le fichier n'éxiste pas, celui-ci est créé. (&#9888; Si le ficher existe celui-ci est écrassé).
+  - `-l`: Lance une MD et écrit les résultats dans le fichier spécifié par l'argument positionel. Si le fichier n'éxiste pas, celui-ci est créé. (&#9888; Si le ficher existe celui-ci est écrassé).
   - `-N`: Permet de spécifier le nombre d'itération de la MD (par défaut elle est de 10000, ce qui représente 5 ps de dynamique).
   - `-T`: Permet de spécifier la température du système en Kelvin (par défaut elle est de 300 Kelvin).  
   - `-g`: Permet le génération et la sauvegarde des graphiques suivants (&#9888; les graphiques générés sont réalisés pour 1000 itérations de MD):
