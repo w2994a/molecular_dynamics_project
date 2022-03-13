@@ -7,6 +7,7 @@ Vous pouvez lancer le programme de dynamique moléculaire d'une molécule triato
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/w2994a/molecular_dynamics_project/HEAD) 
 
 ---
+---
 ## Utilisation
 
 ```
@@ -48,6 +49,34 @@ options:
   - `-m` : Permet de visualiser la dynamique moléculaire du système triatomique.
 
 ---
+### Étapes d'utilisation classique du programme
+
+1. Lancez une modélisation d'une dynamique moléculaire :
+```
+python triatomic_model.py file_name -l
+```
+les options `-T` et `-N`, peuvent être utilisées pour définir respectivement, la température du système et un nombre d'itération de la modélisation.
+
+2. Générez les graphiques d'analyses de la dynamique moléculaire :
+```
+python triatomic_model.py file_name -g
+```
+vous pouvez également utiliser l'option `-s` à la place de `-g`, pour visualiser les variables que vous souhaitez (&#9888; dans ce cas aucune sauvegarde automatique des graphiques n'est effectuer.).
+
+3. Visualisez les mouvements des atomes de la molécules ainsi que leurs forces :
+```
+python triatomic_model.py file_name -m
+```
+Le programme vous demande si vous souhaitez observer des liaisons "fictives". entrez `n` si vous souhaitez observer les liasons réels de la molécules. (&#9888; Les liaisons "fictives" permettent d'observer plus facilement les mouvements en augmentant d'un delta t la différences entre les positions initiales des atomes et leurs positions actuelles. Le mouvement de la molécules ne reflète donc pas la réalité !!!)  
+
+
+Vous pouvez aussi utiliser toutes les options en une seule fois :
+```
+python triatomic_model.py file_name -l -T 300 -N 10000 -g -s -m
+```
+
+---
+---
 ## Installation sur votre pc local
 1. Assurrez-vous d'avoir une installation miniconda ou anaconda (à l'aide de la commande : `conda --version`) et le logiciel de gestion de version Git. Si ce n'est pas le cas procéder à une installation de `conda` ([Miniconda](https://docs.conda.io/en/latest/miniconda.html) • [Anaconda](https://www.anaconda.com/products/individual)) et/ou de `Git` ([Git](https://git-scm.com/downloads)) 
 
@@ -75,6 +104,7 @@ conda env create -f binder/environment.yml
 conda activate molecular-dynamics
 ```  
 
----  
+---
+---
 
 &#169; Willam Amory, Lucas Rouaud - 2022. &#129418;
